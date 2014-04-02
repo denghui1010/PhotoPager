@@ -1,5 +1,7 @@
 package com.ldh.photopager;
 
+import com.ldh.photopager.PhotoPager.OnViewChangeListener;
+
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -10,7 +12,6 @@ import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import com.ldh.photopager.R;
 
 public class MainActivity extends Activity {
 
@@ -70,6 +71,12 @@ public class MainActivity extends Activity {
   private void initView() {
     lv_test = (ListView) findViewById(R.id.lv_test);
     PhotoPager photoPager = new PhotoPager(MainActivity.this);
+    photoPager.setOnViewChangeListener(new OnViewChangeListener() {
+      @Override
+      public void OnViewChange(int position) {
+        System.out.println("position=" + position);
+      }
+    });
     addView(photoPager, 3);
     photoPager.setLayoutParams(new AbsListView.LayoutParams(LayoutParams.MATCH_PARENT, 100));
     lv_test.addHeaderView(photoPager);

@@ -10,16 +10,22 @@ import android.widget.Scroller;
 
 public class PhotoPager extends ViewGroup {
 
+  public interface OnViewChangeListener {
+    void OnViewChange(int position);
+  }
+
   private VelocityTracker mVelocityTracker;
   private Scroller mScroller;
   private final Context mContext;
   private int mCurScreen;
   private float lastX;
-  private final float DEF_XVELOCITY = 1000f;
-  private final int FLING_TO_LEFT = -1;
-  private final int FLING_TO_RIGHT = 1;
+  private final float DEF_XVELOCITY = 500f;
+  private final int FLING_TO_LEFT = 1;
+  private final int FLING_TO_RIGHT = -1;
   private final int FLING_RETURN = 0;
+  private int FLING_DURATION = 400;
   private int currentPage;
+  private OnViewChangeListener mOnViewChangeListener;
 
   public PhotoPager(Context context) {
     super(context);
@@ -73,21 +79,28 @@ public class PhotoPager extends ViewGroup {
       case MotionEvent.ACTION_UP:
         float xVelocity = mVelocityTracker.getXVelocity();
         if (xVelocity > DEF_XVELOCITY) {
-          fling(FLING_TO_LEFT);
-        } else {
           fling(FLING_TO_RIGHT);
+        } else {
+
         }
         if (xVelocity < -DEF_XVELOCITY) {
-          fling(FLING_TO_RIGHT);
+          fling(FLING_TO_LEFT);
         } else {
 
         }
-
         mVelocityTracker.recycle();
         mVelocityTracker = null;
         break;
     }
     return true;
+  }
+
+  public void setFlingDuration(int mills) {
+    FLING_DURATION = mills;
+  }
+
+  public void setOnViewChangeListener(OnViewChangeListener l) {
+    mOnViewChangeListener = l;
   }
 
   @Override
@@ -121,16 +134,18 @@ public class PhotoPager extends ViewGroup {
   private void fling(int type) {
     int dx = 0;
     if (type == FLING_TO_LEFT) {
-      dx = getScrollX();
-      currentPage -= 1;
+      currentPage += 1;
+      dx = currentPage * getWidth() - Math.abs(getScrollX());
     }
     if (type == FLING_RETURN) {
       dx = getWidth() - getScrollX();
     }
     if (type == FLING_TO_RIGHT) {
-      currentPage += 1;
+      currentPage -= 1;
+      dx = type * (Math.abs(getScrollX()) - currentPage * getWidth());
     }
-    mScroller.startScroll(getScrollX(), 0, dx, 0, 500);
+    mOnViewChangeListener.OnViewChange(currentPage);
+    mScroller.startScroll(getScrollX(), 0, dx, 0, FLING_DURATION);
     invalidate();
   }
 
