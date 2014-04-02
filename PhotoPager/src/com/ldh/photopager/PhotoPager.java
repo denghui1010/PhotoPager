@@ -23,7 +23,7 @@ public class PhotoPager extends ViewGroup {
   private final int FLING_TO_LEFT = 1;
   private final int FLING_TO_RIGHT = -1;
   private final int FLING_RETURN = 0;
-  private int FLING_DURATION = 400;
+  private int FLING_DURATION = 300;
   private int currentPage;
   private OnViewChangeListener mOnViewChangeListener;
 
