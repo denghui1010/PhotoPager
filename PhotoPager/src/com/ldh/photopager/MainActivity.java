@@ -1,6 +1,6 @@
 package com.ldh.photopager;
 
-import com.ldh.photopager.PhotoPager.OnViewChangeListener;
+import com.ldh.photopager.PhotoPager.OnPageChangeListener;
 
 import android.app.Activity;
 import android.graphics.Color;
@@ -71,9 +71,10 @@ public class MainActivity extends Activity {
   private void initView() {
     lv_test = (ListView) findViewById(R.id.lv_test);
     PhotoPager photoPager = new PhotoPager(MainActivity.this);
-    photoPager.setOnViewChangeListener(new OnViewChangeListener() {
+    photoPager.setLoop(false);
+    photoPager.setOnPageChangeListener(new OnPageChangeListener() {
       @Override
-      public void OnViewChange(int position) {
+      public void OnPageChange(int position) {
         System.out.println("position=" + position);
       }
     });

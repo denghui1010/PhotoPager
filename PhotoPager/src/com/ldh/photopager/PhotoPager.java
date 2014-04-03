@@ -1,31 +1,33 @@
 package com.ldh.photopager;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Scroller;
 
 public class PhotoPager extends ViewGroup {
 
-  public interface OnViewChangeListener {
-    void OnViewChange(int position);
+  public interface OnPageChangeListener {
+    void OnPageChange(int position);
   }
 
-  private VelocityTracker mVelocityTracker;
   private Scroller mScroller;
   private final Context mContext;
-  private int mCurScreen;
   private float lastX;
-  private final float DEF_XVELOCITY = 500f;
   private final int FLING_TO_LEFT = 1;
   private final int FLING_TO_RIGHT = -1;
   private final int FLING_RETURN = 0;
-  private int FLING_DURATION = 300;
+  private int FLING_DURATION = 500;
+  private int DEF_DISTANCE = 100;
   private int currentPage;
-  private OnViewChangeListener mOnViewChangeListener;
+  private boolean isLoop = true;
+  private OnPageChangeListener mOnPageChangeListener;
+  private List<View> list;
 
   public PhotoPager(Context context) {
     super(context);
@@ -45,6 +47,10 @@ public class PhotoPager extends ViewGroup {
     init();
   }
 
+  public void addViewToList(View child) {
+    list.add(child);
+  }
+
   @Override
   public void computeScroll() {
     if (mScroller.computeScrollOffset()) {
@@ -60,47 +66,70 @@ public class PhotoPager extends ViewGroup {
       case MotionEvent.ACTION_DOWN:
         getParent().requestDisallowInterceptTouchEvent(true);
         lastX = event.getRawX();
-        if (mVelocityTracker == null) {
-          mVelocityTracker = VelocityTracker.obtain();
-          mVelocityTracker.addMovement(event);
-        }
         if (!mScroller.isFinished()) {
           mScroller.abortAnimation();
         }
         break;
       case MotionEvent.ACTION_MOVE:
         float x = event.getRawX();
-        int dx = (int) (lastX - x);
-        mVelocityTracker.addMovement(event);
-        mVelocityTracker.computeCurrentVelocity(500);
-        scrollBy(dx, 0);
+        int dx = (int) (x - lastX);
+        if (!isLoop && currentPage == 0 && getScrollX() - dx < 0) {
+          dx = 0;
+        }
+        if (!isLoop && currentPage == this.getChildCount() - 1
+            && getScrollX() - dx > getWidth() * currentPage) {
+          dx = 0;
+        }
+        scrollBy(-dx, 0);
         lastX = x;
         break;
       case MotionEvent.ACTION_UP:
-        float xVelocity = mVelocityTracker.getXVelocity();
-        if (xVelocity > DEF_XVELOCITY) {
+        if (currentPage * getWidth() - Math.abs(getScrollX()) > DEF_DISTANCE) {
           fling(FLING_TO_RIGHT);
-        } else {
-
-        }
-        if (xVelocity < -DEF_XVELOCITY) {
+        } else if (currentPage * getWidth() - Math.abs(getScrollX()) < -DEF_DISTANCE) {
           fling(FLING_TO_LEFT);
         } else {
-
+          fling(FLING_RETURN);
         }
-        mVelocityTracker.recycle();
-        mVelocityTracker = null;
         break;
     }
     return true;
   }
 
+  /**
+   * 设置滑动多长距离后松手可以开始fling
+   * 
+   * @param distance 阀值长度
+   */
+  public void setDefDistance(int distance) {
+    DEF_DISTANCE = distance;
+  }
+
+  /**
+   * 设置fling状态的时间
+   * 
+   * @param mills fling时间,单位毫秒
+   */
   public void setFlingDuration(int mills) {
     FLING_DURATION = mills;
   }
 
-  public void setOnViewChangeListener(OnViewChangeListener l) {
-    mOnViewChangeListener = l;
+  /**
+   * 设置是否开启循环
+   * 
+   * @param bool true开启,false关闭,默认开启
+   */
+  public void setLoop(boolean bool) {
+    isLoop = bool;
+  }
+
+  /**
+   * 设置view切换监听,给监听会告诉你当前位置position
+   * 
+   * @param onViewChangeListener view切换监听
+   */
+  public void setOnPageChangeListener(OnPageChangeListener onPageChangeListener) {
+    mOnPageChangeListener = onPageChangeListener;
   }
 
   @Override
@@ -128,7 +157,6 @@ public class PhotoPager extends ViewGroup {
     for (int i = 0; i < count; i++) {
       getChildAt(i).measure(widthMeasureSpec, heightMeasureSpec);
     }
-    scrollTo(mCurScreen * width, 0);
   }
 
   private void fling(int type) {
@@ -138,18 +166,26 @@ public class PhotoPager extends ViewGroup {
       dx = currentPage * getWidth() - Math.abs(getScrollX());
     }
     if (type == FLING_RETURN) {
-      dx = getWidth() - getScrollX();
+      dx = (currentPage) * getWidth() - Math.abs(getScrollX());
     }
     if (type == FLING_TO_RIGHT) {
       currentPage -= 1;
       dx = type * (Math.abs(getScrollX()) - currentPage * getWidth());
     }
-    mOnViewChangeListener.OnViewChange(currentPage);
+    mOnPageChangeListener.OnPageChange(currentPage);
+    update();
     mScroller.startScroll(getScrollX(), 0, dx, 0, FLING_DURATION);
     invalidate();
   }
 
   private void init() {
     mScroller = new Scroller(mContext);
+    list = new ArrayList<View>();
   }
+
+  private void update() {
+    removeViewAt(currentPage - 2);
+    super.addView(list.get(currentPage + 1));
+  }
+
 }
