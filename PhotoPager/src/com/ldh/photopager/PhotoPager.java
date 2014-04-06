@@ -29,7 +29,6 @@ public class PhotoPager extends ViewGroup {
   private boolean isLoop = true;
   private OnPageChangeListener mOnPageChangeListener;
   private List<View> list;
-  private int temp;
 
   public PhotoPager(Context context) {
     super(context);
@@ -47,10 +46,6 @@ public class PhotoPager extends ViewGroup {
     super(context, attrs, defStyle);
     mContext = context;
     init();
-  }
-
-  public void addViewToList(View child) {
-    list.add(child);
   }
 
   @Override
@@ -136,7 +131,6 @@ public class PhotoPager extends ViewGroup {
 
   @Override
   protected void onAttachedToWindow() {
-    addView(list.get(0));
     update();
     super.onAttachedToWindow();
   }
