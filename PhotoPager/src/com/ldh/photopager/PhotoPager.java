@@ -5,7 +5,6 @@ import java.util.List;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +45,10 @@ public class PhotoPager extends ViewGroup {
     super(context, attrs, defStyle);
     mContext = context;
     init();
+  }
+
+  public void addViewToList(View view) {
+    list.add(view);
   }
 
   @Override
@@ -194,27 +197,8 @@ public class PhotoPager extends ViewGroup {
   }
 
   private void update() {
-    int childCount = this.getChildCount();
-    try {
-      removeView(list.get(getIndex(getIndex(currentPage, 1), 1)));
-      Log.e("System.out", "remove" + getIndex(getIndex(currentPage, 1), 1));
-    } catch (Exception e) {
-    }
-    try {
-      removeView(list.get(getIndex(getIndex(currentPage, -1), -1)));
-      Log.e("System.out", "remove" + getIndex(getIndex(currentPage, -1), -1));
-    } catch (Exception e) {
-    }
-    try {
-      View view = list.get(getIndex(currentPage, 1));
-      addView(view);
-      Log.e("System.out", "add" + getIndex(currentPage, 1));
-    } catch (Exception e) {
-    }
-    try {
-      addView(list.get(getIndex(currentPage, -1)), currentPage - 1);
-      Log.e("System.out", "add" + getIndex(currentPage, -1));
-    } catch (Exception e) {
-    }
+    View view = list.get(currentPage);
+    this.addView(view);
+    view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
   }
 }
