@@ -5,6 +5,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +29,7 @@ public class PhotoPager extends ViewGroup {
   private boolean isLoop = true;
   private OnPageChangeListener mOnPageChangeListener;
   private List<View> list;
+  private int temp;
 
   public PhotoPager(Context context) {
     super(context);
@@ -133,17 +135,22 @@ public class PhotoPager extends ViewGroup {
   }
 
   @Override
+  protected void onAttachedToWindow() {
+    addView(list.get(0));
+    update();
+    super.onAttachedToWindow();
+  }
+
+  @Override
   protected void onLayout(boolean changed, int l, int t, int r, int b) {
-    if (changed) {
-      int childLeft = 0;
-      final int childCount = getChildCount();
-      for (int i = 0; i < childCount; i++) {
-        final View childView = getChildAt(i);
-        if (childView.getVisibility() != View.GONE) {
-          final int childWidth = childView.getMeasuredWidth();
-          childView.layout(childLeft, 0, childLeft + childWidth, childView.getMeasuredHeight());
-          childLeft += childWidth;
-        }
+    int childLeft = 0;
+    final int childCount = getChildCount();
+    for (int i = 0; i < childCount; i++) {
+      final View childView = getChildAt(i);
+      if (childView.getVisibility() != View.GONE) {
+        final int childWidth = childView.getMeasuredWidth();
+        childView.layout(childLeft, 0, childLeft + childWidth, childView.getMeasuredHeight());
+        childLeft += childWidth;
       }
     }
   }
@@ -151,8 +158,6 @@ public class PhotoPager extends ViewGroup {
   @Override
   protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
     super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-    final int width = MeasureSpec.getSize(widthMeasureSpec);
-    final int widthMode = MeasureSpec.getMode(widthMeasureSpec);
     final int count = getChildCount();
     for (int i = 0; i < count; i++) {
       getChildAt(i).measure(widthMeasureSpec, heightMeasureSpec);
@@ -173,9 +178,20 @@ public class PhotoPager extends ViewGroup {
       dx = type * (Math.abs(getScrollX()) - currentPage * getWidth());
     }
     mOnPageChangeListener.OnPageChange(currentPage);
-    update();
     mScroller.startScroll(getScrollX(), 0, dx, 0, FLING_DURATION);
+    update();
     invalidate();
+  }
+
+  private int getIndex(int i, int type) {
+    int total = list.size();
+    if (i + type > list.size()) {
+      return 0;
+    }
+    if (i + type < 0) {
+      return list.size();
+    }
+    return i + type;
   }
 
   private void init() {
@@ -184,8 +200,27 @@ public class PhotoPager extends ViewGroup {
   }
 
   private void update() {
-    removeViewAt(currentPage - 2);
-    super.addView(list.get(currentPage + 1));
+    int childCount = this.getChildCount();
+    try {
+      removeView(list.get(getIndex(getIndex(currentPage, 1), 1)));
+      Log.e("System.out", "remove" + getIndex(getIndex(currentPage, 1), 1));
+    } catch (Exception e) {
+    }
+    try {
+      removeView(list.get(getIndex(getIndex(currentPage, -1), -1)));
+      Log.e("System.out", "remove" + getIndex(getIndex(currentPage, -1), -1));
+    } catch (Exception e) {
+    }
+    try {
+      View view = list.get(getIndex(currentPage, 1));
+      addView(view);
+      Log.e("System.out", "add" + getIndex(currentPage, 1));
+    } catch (Exception e) {
+    }
+    try {
+      addView(list.get(getIndex(currentPage, -1)), currentPage - 1);
+      Log.e("System.out", "add" + getIndex(currentPage, -1));
+    } catch (Exception e) {
+    }
   }
-
 }

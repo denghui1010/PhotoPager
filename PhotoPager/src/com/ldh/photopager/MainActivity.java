@@ -50,7 +50,7 @@ public class MainActivity extends Activity {
     initView();
   }
 
-  private void addView(ViewGroup viewGroup, int len) {
+  private void addView(PhotoPager viewGroup, int len) {
     for (int i = 1; i < len + 1; i++) {
       TextView textView = new TextView(MainActivity.this);
       textView.setText("测试" + i);
@@ -64,21 +64,21 @@ public class MainActivity extends Activity {
       if (i % 3 == 2) {
         textView.setBackgroundColor(Color.YELLOW);
       }
-      viewGroup.addView(textView);
+      viewGroup.addViewToList(textView);
     }
   }
 
   private void initView() {
     lv_test = (ListView) findViewById(R.id.lv_test);
     PhotoPager photoPager = new PhotoPager(MainActivity.this);
-    photoPager.setLoop(false);
+    photoPager.setLoop(true);
     photoPager.setOnPageChangeListener(new OnPageChangeListener() {
       @Override
       public void OnPageChange(int position) {
         System.out.println("position=" + position);
       }
     });
-    addView(photoPager, 3);
+    addView(photoPager, 6);
     photoPager.setLayoutParams(new AbsListView.LayoutParams(LayoutParams.MATCH_PARENT, 100));
     lv_test.addHeaderView(photoPager);
     lv_test.setAdapter(new MyAdapter());
