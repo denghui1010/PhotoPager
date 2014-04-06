@@ -1,8 +1,5 @@
 package com.ldh.photopager;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -27,7 +24,6 @@ public class PhotoPager extends ViewGroup {
   private int currentPage;
   private boolean isLoop = true;
   private OnPageChangeListener mOnPageChangeListener;
-  private List<View> list;
 
   public PhotoPager(Context context) {
     super(context);
@@ -45,10 +41,6 @@ public class PhotoPager extends ViewGroup {
     super(context, attrs, defStyle);
     mContext = context;
     init();
-  }
-
-  public void addViewToList(View child) {
-    list.add(child);
   }
 
   @Override
@@ -173,19 +165,12 @@ public class PhotoPager extends ViewGroup {
       dx = type * (Math.abs(getScrollX()) - currentPage * getWidth());
     }
     mOnPageChangeListener.OnPageChange(currentPage);
-    update();
     mScroller.startScroll(getScrollX(), 0, dx, 0, FLING_DURATION);
     invalidate();
   }
 
   private void init() {
     mScroller = new Scroller(mContext);
-    list = new ArrayList<View>();
-  }
-
-  private void update() {
-    removeViewAt(currentPage - 2);
-    super.addView(list.get(currentPage + 1));
   }
 
 }
