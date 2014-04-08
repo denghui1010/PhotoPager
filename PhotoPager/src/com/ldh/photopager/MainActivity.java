@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
   }
 
   private void addView(PhotoPager viewGroup, int len) {
-    for (int i = 1; i < len + 1; i++) {
+    for (int i = 0; i < len; i++) {
       TextView textView = new TextView(MainActivity.this);
       textView.setText("测试" + i);
       textView.setTextSize(18);
