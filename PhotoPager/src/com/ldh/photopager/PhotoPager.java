@@ -5,7 +5,6 @@ import java.util.List;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,7 +28,7 @@ public class PhotoPager extends ViewGroup {
   private boolean isLoop = true;
   private OnPageChangeListener mOnPageChangeListener;
   private List<View> list;
-  private int temp;
+  private boolean allowLayout = true;
 
   public PhotoPager(Context context) {
     super(context);
@@ -50,6 +49,7 @@ public class PhotoPager extends ViewGroup {
   }
 
   public void addViewToList(View child) {
+    addView(child);
     list.add(child);
   }
 
@@ -58,6 +58,10 @@ public class PhotoPager extends ViewGroup {
     if (mScroller.computeScrollOffset()) {
       scrollTo(mScroller.getCurrX(), mScroller.getCurrY());
       postInvalidate();
+      if (mScroller.isFinished()) {
+        mOnPageChangeListener.OnPageChange(currentPage);
+        update();
+      }
     }
 
   }
@@ -126,7 +130,7 @@ public class PhotoPager extends ViewGroup {
   }
 
   /**
-   * 设置view切换监听,给监听会告诉你当前位置position
+   * 设置view切换监听,该监听会告诉你当前位置position
    * 
    * @param onViewChangeListener view切换监听
    */
@@ -136,22 +140,22 @@ public class PhotoPager extends ViewGroup {
 
   @Override
   protected void onAttachedToWindow() {
-    addView(list.get(0));
-    update();
+    mOnPageChangeListener.OnPageChange(currentPage);
     super.onAttachedToWindow();
   }
 
   @Override
   protected void onLayout(boolean changed, int l, int t, int r, int b) {
-    int childLeft = 0;
-    final int childCount = getChildCount();
-    for (int i = 0; i < childCount; i++) {
-      final View childView = getChildAt(i);
-      if (childView.getVisibility() != View.GONE) {
-        final int childWidth = childView.getMeasuredWidth();
-        childView.layout(childLeft, 0, childLeft + childWidth, childView.getMeasuredHeight());
-        childLeft += childWidth;
+    if (allowLayout) {
+      System.out.println("onLayout");
+      int childCount = getChildCount();
+      for (int i = 0; i < childCount; i++) {
+        View childView = getChildAt(i);
+        int childWidth = childView.getMeasuredWidth();
+        getChildAt(i)
+            .layout(childWidth * i, 0, childWidth * (i + 1), childView.getMeasuredHeight());
       }
+      allowLayout = false;
     }
   }
 
@@ -165,6 +169,37 @@ public class PhotoPager extends ViewGroup {
   }
 
   private void fling(int type) {
+    // int dx = 0;
+    // if (type == FLING_TO_LEFT) {
+    // int[] location = new int[2];
+    // int index = getIndex(currentPage, 1);
+    // list.get(index).getLocationInWindow(location);
+    // dx = location[0];
+    // currentPage = index;
+    // }
+    // if (type == FLING_RETURN) {
+    // int[] location = new int[2];
+    // int index = getIndex(currentPage, 0);
+    // list.get(index).getLocationInWindow(location);
+    // dx = location[0];
+    // currentPage = index;
+    // }
+    // if (type == FLING_TO_RIGHT) {
+    // int[] location = new int[2];
+    // int index = getIndex(currentPage, -1);
+    // list.get(index).getLocationInWindow(location);
+    // dx = location[0];
+    // currentPage = index;
+    // }
+    int[] location = new int[2];
+    int index = getIndex(currentPage, type);
+    list.get(index).getLocationInWindow(location);
+    currentPage = index;
+    mScroller.startScroll(getScrollX(), 0, location[0], 0, FLING_DURATION);
+    invalidate();
+  }
+
+  private void fling2(int type) {
     int dx = 0;
     if (type == FLING_TO_LEFT) {
       currentPage += 1;
@@ -177,19 +212,16 @@ public class PhotoPager extends ViewGroup {
       currentPage -= 1;
       dx = type * (Math.abs(getScrollX()) - currentPage * getWidth());
     }
-    mOnPageChangeListener.OnPageChange(currentPage);
     mScroller.startScroll(getScrollX(), 0, dx, 0, FLING_DURATION);
-    update();
     invalidate();
   }
 
   private int getIndex(int i, int type) {
-    int total = list.size();
-    if (i + type > list.size()) {
+    if (i + type > list.size() - 1) {
       return 0;
     }
     if (i + type < 0) {
-      return list.size();
+      return list.size() - 1;
     }
     return i + type;
   }
@@ -200,27 +232,12 @@ public class PhotoPager extends ViewGroup {
   }
 
   private void update() {
-    int childCount = this.getChildCount();
-    try {
-      removeView(list.get(getIndex(getIndex(currentPage, 1), 1)));
-      Log.e("System.out", "remove" + getIndex(getIndex(currentPage, 1), 1));
-    } catch (Exception e) {
-    }
-    try {
-      removeView(list.get(getIndex(getIndex(currentPage, -1), -1)));
-      Log.e("System.out", "remove" + getIndex(getIndex(currentPage, -1), -1));
-    } catch (Exception e) {
-    }
-    try {
-      View view = list.get(getIndex(currentPage, 1));
-      addView(view);
-      Log.e("System.out", "add" + getIndex(currentPage, 1));
-    } catch (Exception e) {
-    }
-    try {
-      addView(list.get(getIndex(currentPage, -1)), currentPage - 1);
-      Log.e("System.out", "add" + getIndex(currentPage, -1));
-    } catch (Exception e) {
+    if (currentPage == getChildCount() - 1) {
+      View childAt = getChildAt(0);
+      removeView(childAt);
+      addView(childAt);
+      childAt.layout((currentPage + 1) * childAt.getMeasuredWidth(), 0, (currentPage + 2)
+          * childAt.getMeasuredWidth(), childAt.getMeasuredHeight());
     }
   }
 }
