@@ -29,6 +29,8 @@ public class PhotoPager extends ViewGroup {
   private OnPageChangeListener mOnPageChangeListener;
   private List<View> list;
   private boolean allowLayout = true;
+  private boolean addToRight;
+  private boolean addToLeft;
 
   public PhotoPager(Context context) {
     super(context);
@@ -169,28 +171,6 @@ public class PhotoPager extends ViewGroup {
   }
 
   private void fling(int type) {
-    // int dx = 0;
-    // if (type == FLING_TO_LEFT) {
-    // int[] location = new int[2];
-    // int index = getIndex(currentPage, 1);
-    // list.get(index).getLocationInWindow(location);
-    // dx = location[0];
-    // currentPage = index;
-    // }
-    // if (type == FLING_RETURN) {
-    // int[] location = new int[2];
-    // int index = getIndex(currentPage, 0);
-    // list.get(index).getLocationInWindow(location);
-    // dx = location[0];
-    // currentPage = index;
-    // }
-    // if (type == FLING_TO_RIGHT) {
-    // int[] location = new int[2];
-    // int index = getIndex(currentPage, -1);
-    // list.get(index).getLocationInWindow(location);
-    // dx = location[0];
-    // currentPage = index;
-    // }
     int[] location = new int[2];
     int index = getIndex(currentPage, type);
     list.get(index).getLocationInWindow(location);
@@ -233,11 +213,16 @@ public class PhotoPager extends ViewGroup {
 
   private void update() {
     if (currentPage == getChildCount() - 1) {
-      View childAt = getChildAt(0);
-      removeView(childAt);
-      addView(childAt);
-      childAt.layout((currentPage + 1) * childAt.getMeasuredWidth(), 0, (currentPage + 2)
-          * childAt.getMeasuredWidth(), childAt.getMeasuredHeight());
+      addToRight = true;
+    }
+    if (addToRight) {
+      View firstChild = getChildAt(0);
+      removeView(firstChild);
+      View lastChild = getChildAt(getChildCount() - 1);
+      System.out.println(lastChild.getRight());
+      addView(firstChild);
+      firstChild.layout(lastChild.getRight(), 0, lastChild.getRight()
+          + firstChild.getMeasuredWidth(), firstChild.getMeasuredHeight());
     }
   }
 }

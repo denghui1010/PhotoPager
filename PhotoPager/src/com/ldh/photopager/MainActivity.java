@@ -78,7 +78,7 @@ public class MainActivity extends Activity {
         System.out.println("position=" + position);
       }
     });
-    addView(photoPager, 6);
+    addView(photoPager, 3);
     photoPager.setLayoutParams(new AbsListView.LayoutParams(LayoutParams.MATCH_PARENT, 100));
     lv_test.addHeaderView(photoPager);
     lv_test.setAdapter(new MyAdapter());
